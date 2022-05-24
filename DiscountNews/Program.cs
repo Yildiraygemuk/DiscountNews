@@ -24,53 +24,41 @@ namespace DiscountNews
         {
 
 
-            Console.WriteLine("Ürün linkini giriniz");
+            Console.WriteLine("Enter the product url");
             var url = Console.ReadLine();
             url = UrlCheck(url);
 
-            Console.WriteLine("Email adresinizi giriniz");
+            Console.WriteLine("Enter your email address");
             var email = Console.ReadLine();
             email = IsValidEmail(email);
 
-            Console.WriteLine("Kaç TL'nin altına düşünce mail ile bilgilendirilmek istersiniz?");
+            Console.WriteLine("If the price of the product falls below how much TRY, should the notification e-mail be sent?");
             var priceControl = Console.ReadLine();
             var price = Convert.ToDecimal(IsNumber(priceControl));
 
-            Console.WriteLine("Kaç saat aralıkla kontrol edilsin");
+            Console.WriteLine("How many hours to check?");
             var durationControl = Console.ReadLine();
-            var duration = Convert.ToDecimal(IsNumber(durationControl));
+            var duration = Convert.ToInt32(IsNumber(durationControl));
 
             try
             {
-                // Grab the Scheduler instance from the Factory 
                 IScheduler scheduler = StdSchedulerFactory.GetDefaultScheduler().Result;
-
-                // and start it off
                 scheduler.Start();
-
-                // define the job and tie it to our HelloJob class
                 IJobDetail job = JobBuilder.Create<HelloJob>()
                     .UsingJobData("email", email)
                     .UsingJobData("url", url)
                     .UsingJobData("price", price.ToString())
                     .WithIdentity("job1", "group1")
                     .Build();
-
-                // Trigger the job to run now, and then repeat every 10 seconds
                 ITrigger trigger = TriggerBuilder.Create()
                     .WithIdentity("trigger1", "group1")
                     .StartNow()
                     .WithSimpleSchedule(x => x
-                        .WithIntervalInSeconds(10)
-                        .RepeatForever()
-                        )
+                        .WithIntervalInHours(duration)
+                        .RepeatForever())
                     .Build();
-
-                // Tell quartz to schedule the job using our trigger
                 scheduler.ScheduleJob(job, trigger);
                 Thread.Sleep(TimeSpan.FromSeconds(5));
-                // and last shut down the scheduler when you are ready to close your program
-                //scheduler.Shutdown();
                 Console.ReadLine();
             }
             catch (SchedulerException se)
